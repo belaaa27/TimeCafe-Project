@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full bg-slateDark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Staff Portal Login | TimeCafe OS</title>
+  
+  <!-- Compiled Tailwind CSS (Navigates out of /admin to root /css) -->
+  <link rel="stylesheet" href="../css/output.css">
+  
+  <!-- Font Awesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body class="font-sans antialiased text-slate-200 bg-slateDark min-h-screen flex items-center justify-center p-4">
+
+  <!-- Main Login Card -->
+  <div class="max-w-md w-full bg-slatePanel border border-slate-700/60 rounded-2xl p-6 sm:p-8 shadow-2xl relative overflow-hidden">
+    
+    <!-- Top Decorative Line -->
+    <div class="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-blue-500 via-indigo-500 to-sky-400"></div>
+
+    <!-- Header Section -->
+    <div class="text-center mb-8">
+      <div class="w-12 h-12 bg-adminAccent/10 border border-adminAccent/30 text-adminAccent rounded-xl flex items-center justify-center mx-auto mb-3 text-xl shadow-inner">
+        <i class="fa-solid fa-shield-halved"></i>
+      </div>
+      <h1 class="text-2xl font-bold text-white tracking-tight">TimeCafe OS</h1>
+      <p class="text-xs font-medium text-slate-400 mt-1 uppercase tracking-wider">Staff & Management Portal</p>
+    </div>
+
+    <!-- Global Error Container -->
+    <div id="loginError" class="hidden mb-6 p-3.5 rounded-xl bg-rose-500/10 border border-rose-500/20 text-rose-400 text-xs font-medium text-center transition-all"></div>
+
+    <!-- Login Form -->
+    <form id="loginForm" class="space-y-5" novalidate>
+      
+      <!-- Email Field -->
+      <div>
+        <label for="email" class="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-2">Staff Email</label>
+        <div class="relative">
+          <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center text-slate-500 pointer-events-none">
+            <i class="fa-regular fa-envelope text-sm"></i>
+          </span>
+          <input 
+            type="email" 
+            id="email" 
+            required
+            autofocus
+            autocomplete="username"
+            placeholder="admin@timecafe.com"
+            class="w-full pl-10 pr-4 py-2.5 bg-slate-900 border border-slate-700 rounded-xl text-white placeholder-slate-500 text-sm focus:outline-none focus:border-adminAccent focus:ring-1 focus:ring-adminAccent transition"
+          >
+        </div>
+      </div>
+
+      <!-- Password Field -->
+      <div>
+        <label for="password" class="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-2">Password</label>
+        <div class="relative">
+          <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center text-slate-500 pointer-events-none">
+            <i class="fa-solid fa-lock text-xs"></i>
+          </span>
+          <input 
+            type="password" 
+            id="password" 
+            required
+            autocomplete="current-password"
+            placeholder="••••••••"
+            class="w-full pl-10 pr-10 py-2.5 bg-slate-900 border border-slate-700 rounded-xl text-white placeholder-slate-500 text-sm focus:outline-none focus:border-adminAccent focus:ring-1 focus:ring-adminAccent transition"
+          >
+          <button 
+            type="button" 
+            id="togglePasswordBtn"
+            tabindex="-1"
+            class="absolute inset-y-0 right-0 pr-3.5 flex items-center text-slate-500 hover:text-slate-300 transition"
+            aria-label="Toggle password visibility"
+          >
+            <i id="togglePasswordIcon" class="fa-regular fa-eye text-xs"></i>
+          </button>
+        </div>
+      </div>
+
+      <!-- Submit Button -->
+      <button 
+        type="submit" 
+        id="submitBtn"
+        class="w-full mt-2 py-3 px-4 bg-adminAccent hover:bg-adminAccentHover text-white text-sm font-semibold rounded-xl shadow-md transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+      >
+        <span id="btnText">Secure Login</span>
+        <i id="btnSpinner" class="fa-solid fa-spinner animate-spin text-sm hidden" style="display: none;"></i>
+      </button>
+
+    </form>
+
+    <!-- Footer Security Notice -->
+    <div class="mt-8 pt-6 border-t border-slate-700/50 text-center">
+      <p class="text-xs text-slate-500 flex items-center justify-center gap-1.5">
+        <i class="fa-solid fa-lock text-[10px]"></i> Authorized personnel only. All access is logged.
+      </p>
+    </div>
+
+  </div>
+
+  <!-- Scripts -->
+   <script src="../js/api.js"></script>
+  <script src="js/admin-auth.js"></script>
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      // 1. Auto-redirect to dashboard if user is already authenticated
+      const existingToken = localStorage.getItem("timecafe_token") || localStorage.getItem("token");
+      const existingRole = localStorage.getItem("timecafe_role");
+
+      if (existingToken && (existingRole === "admin" || existingRole === "super_admin")) {
+        window.location.href = "dashboard.html";
+        return;
+      }
+
+      const loginForm = document.getElementById("loginForm");
+      const submitBtn = document.getElementById("submitBtn");
+      const btnText = document.getElementById("btnText");
+      const btnSpinner = document.getElementById("btnSpinner");
+      const errorEl = document.getElementById("loginError");
+      const emailInput = document.getElementById("email");
+      const passwordInput = document.getElementById("password");
+      const togglePasswordBtn = document.getElementById("togglePasswordBtn");
+      const togglePasswordIcon = document.getElementById("togglePasswordIcon");
+
+      // Reset loading state on initialization
+      setLoading(false);
+
+      // Password visibility toggle
+      if (togglePasswordBtn && passwordInput) {
+        togglePasswordBtn.addEventListener("click", () => {
+          const isPassword = passwordInput.type === "password";
+          passwordInput.type = isPassword ? "text" : "password";
+          togglePasswordIcon.className = isPassword
+            ? "fa-regular fa-eye-slash text-xs text-adminAccent"
+            : "fa-regular fa-eye text-xs text-slate-500";
+        });
+      }
+
+      // Clear error messages on input focus
+      [emailInput, passwordInput].forEach((input) => {
+        if (input) {
+          input.addEventListener("input", () => {
+            if (errorEl && !errorEl.classList.contains("hidden")) {
+              errorEl.classList.add("hidden");
+              errorEl.innerText = "";
+            }
+          });
+        }
+      });
+
+      if (!loginForm) return;
+
+      loginForm.addEventListener("submit", async (e) => {
+        e.preventDefault();
+
+        // Clear previous error state
+        if (errorEl) {
+          errorEl.classList.add("hidden");
+          errorEl.innerText = "";
+        }
+
+        const email = emailInput.value.trim();
+        const password = passwordInput.value;
+
+        if (!email || !password) {
+          showError("Please enter both email and password.");
+          return;
+        }
+
+        setLoading(true);
+
+        const baseUrl = window.API_BASE_URL || "http://localhost:5000/api";
+
+        try {
+          const res = await fetch(`${baseUrl}/auth/login`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ email, password }),
+          });
+
+          const result = await res.json();
+
+          if (!res.ok) {
+            throw new Error(result.message || "Invalid email or password.");
+          }
+
+          // Extract token and user payload safely
+          const token = result.token || result.data?.token;
+          const user = result.user || result.data?.user || result.data;
+
+          if (!token || !user) {
+            throw new Error("Invalid authentication payload from server.");
+          }
+
+          // Verify admin authorization role
+          if (user.role !== "admin" && user.role !== "super_admin") {
+            throw new Error("Access denied: You do not have administrative permissions.");
+          }
+
+          // Save keys consistently for all admin modules
+          localStorage.setItem("token", token);
+          localStorage.setItem("adminToken", token);
+          localStorage.setItem("adminUser", JSON.stringify(user));
+
+          localStorage.setItem("timecafe_token", token);
+          localStorage.setItem("timecafe_role", user.role);
+          localStorage.setItem("timecafe_user", JSON.stringify(user));
+
+          // Redirect to administrative dashboard
+          window.location.href = "dashboard.html";
+
+        } catch (err) {
+          console.error("Login Error:", err);
+          showError(err.message);
+          setLoading(false);
+        }
+      });
+
+      function showError(msg) {
+        if (errorEl) {
+          errorEl.innerText = msg;
+          errorEl.classList.remove("hidden");
+        } else {
+          alert(msg);
+        }
+      }
+
+      function setLoading(isLoading) {
+        if (isLoading) {
+          submitBtn.disabled = true;
+          btnText.innerText = "Authenticating...";
+          btnSpinner.classList.remove("hidden");
+          btnSpinner.style.display = "inline-block";
+        } else {
+          submitBtn.disabled = false;
+          btnText.innerText = "Secure Login";
+          btnSpinner.classList.add("hidden");
+          btnSpinner.style.display = "none";
+        }
+      }
+    });
+  </script>
+</body>
+</html>

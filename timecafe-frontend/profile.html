@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Account | TimeCafe Pizzeria</title>
+    
+    <!-- Compiled Tailwind CSS -->
+    <link rel="stylesheet" href="css/output.css">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:wght@600;700;800&display=swap" rel="stylesheet">
+    <!-- Pizza Favicon -->
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🍕</text></svg>">
+
+    <style>
+        .glass-nav {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        .bg-noise {
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.05'/%3E%3C/svg%3E");
+        }
+        .modal-scroll::-webkit-scrollbar { width: 5px; }
+        .modal-scroll::-webkit-scrollbar-track { background: #f1f1f1; border-radius: 4px; }
+        .modal-scroll::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+    </style>
+</head>
+<body class="font-sans bg-light text-gray-800 antialiased bg-noise min-h-screen flex flex-col">
+
+    <!-- Header Navigation -->
+    <nav class="w-full glass-nav shadow-sm py-4 sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex justify-between items-center">
+            <a href="index.html" class="flex items-center cursor-pointer">
+                <div class="w-10 h-10 bg-primary rounded-full flex items-center justify-center text-white mr-2 shadow-md">
+                    <i class="fa-solid fa-pizza-slice text-xl"></i>
+                </div>
+                <span class="font-serif text-2xl font-bold tracking-tight text-dark">
+                    Time<span class="text-primary">Cafe</span>
+                </span>
+            </a>
+            <div class="text-sm font-medium text-gray-600 flex items-center gap-6">
+                <a href="index.html" class="hover:text-primary transition-colors">Menu</a>
+                <a href="cart.html" class="hover:text-primary transition-colors flex items-center gap-1">
+                    <i class="fa-solid fa-cart-shopping"></i> Cart
+                </a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="flex-grow max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full">
+        
+        <!-- Header Banner -->
+        <div class="bg-white rounded-3xl p-6 sm:p-8 shadow-sm border border-gray-100 mb-8 flex flex-col sm:flex-row items-center justify-between gap-6">
+            <div class="flex items-center gap-5 w-full sm:w-auto">
+                <div class="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl bg-gradient-to-tr from-primary to-secondary text-white font-serif font-bold text-2xl sm:text-3xl flex items-center justify-center shadow-md shrink-0">
+                    <span id="userAvatarInitials">--</span>
+                </div>
+                <div>
+                    <h1 id="welcomeGreeting" class="text-2xl sm:text-3xl font-serif font-bold text-dark">Welcome back</h1>
+                    <p id="userEmailBadge" class="text-sm text-gray-500 mt-1 flex items-center gap-1.5">
+                        <i class="fa-solid fa-envelope text-xs text-gray-400"></i> Loading account...
+                    </p>
+                </div>
+            </div>
+
+            <!-- Dashboard Navigation Tabs -->
+            <div class="flex items-center bg-gray-100 p-1.5 rounded-2xl w-full sm:w-auto">
+                <button id="tabOrdersBtn" onclick="switchTab('orders')" class="flex-1 sm:flex-none px-6 py-2.5 rounded-xl font-bold text-sm transition-all bg-white text-dark shadow-sm">
+                    <i class="fa-solid fa-clock-rotate-left mr-1.5"></i> Order History
+                </button>
+                <button id="tabProfileBtn" onclick="switchTab('profile')" class="flex-1 sm:flex-none px-6 py-2.5 rounded-xl font-bold text-sm transition-all text-gray-500 hover:text-dark">
+                    <i class="fa-solid fa-user mr-1.5"></i> Profile Info
+                </button>
+            </div>
+        </div>
+
+        <!-- TAB 1: ORDER HISTORY SECTION -->
+        <section id="ordersTabSection" class="space-y-6">
+            <div class="flex items-center justify-between">
+                <h2 class="text-xl font-serif font-bold text-dark">Your Past Orders</h2>
+                <button onclick="loadOrderHistory()" class="text-xs font-semibold text-primary hover:text-primaryDark transition-colors flex items-center gap-1">
+                    <i class="fa-solid fa-rotate text-[10px]"></i> Refresh
+                </button>
+            </div>
+
+            <!-- Orders Container (Rendered dynamically) -->
+            <div id="ordersListContainer" class="space-y-4">
+                <!-- Skeleton / Loading State Default -->
+                <div class="bg-white rounded-3xl p-6 border border-gray-100 animate-pulse space-y-4">
+                    <div class="h-6 bg-gray-200 rounded-lg w-1/4"></div>
+                    <div class="h-12 bg-gray-100 rounded-xl w-full"></div>
+                </div>
+            </div>
+        </section>
+
+        <!-- TAB 2: PROFILE & DELIVERY DETAILS SECTION -->
+        <section id="profileTabSection" class="hidden space-y-6">
+            <form id="profileForm" novalidate class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                
+                <!-- Personal Info Card -->
+                <div class="bg-white rounded-3xl p-6 sm:p-8 shadow-sm border border-gray-100 space-y-6">
+                    <div class="flex items-center gap-3 border-b border-gray-100 pb-4">
+                        <div class="w-10 h-10 rounded-2xl bg-red-50 text-primary flex items-center justify-center font-bold">
+                            <i class="fa-solid fa-user text-lg"></i>
+                        </div>
+                        <div>
+                            <h2 class="text-lg font-bold font-serif text-dark">Personal Details</h2>
+                            <p class="text-xs text-gray-400">Your account identity & contact information</p>
+                        </div>
+                    </div>
+
+                    <div class="space-y-4">
+                        <div>
+                            <label for="profFullName" class="block text-xs font-bold uppercase tracking-wider text-gray-700 mb-1">
+                                Full Name <span class="text-primary">*</span>
+                            </label>
+                            <input type="text" id="profFullName" name="profFullName" class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:outline-none focus:border-primary text-sm transition-all">
+                            <p id="profFullNameError" class="text-primary text-xs mt-1 hidden"></p>
+                        </div>
+
+                        <div>
+                            <label for="profPhone" class="block text-xs font-bold uppercase tracking-wider text-gray-700 mb-1">
+                                Phone Number <span class="text-primary">*</span>
+                            </label>
+                            <input type="tel" id="profPhone" name="profPhone" class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:outline-none focus:border-primary text-sm transition-all">
+                            <p id="profPhoneError" class="text-primary text-xs mt-1 hidden"></p>
+                        </div>
+
+                        <div>
+                            <label for="profEmail" class="block text-xs font-bold uppercase tracking-wider text-gray-700 mb-1">
+                                Email Address <span class="text-primary">*</span>
+                            </label>
+                            <input type="email" id="profEmail" name="profEmail" class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:outline-none focus:border-primary text-sm transition-all">
+                            <p id="profEmailError" class="text-primary text-xs mt-1 hidden"></p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Default Delivery Address Card -->
+                <div class="bg-white rounded-3xl p-6 sm:p-8 shadow-sm border border-gray-100 space-y-6 flex flex-col justify-between">
+                    <div class="space-y-6">
+                        <div class="flex items-center gap-3 border-b border-gray-100 pb-4">
+                            <div class="w-10 h-10 rounded-2xl bg-amber-50 text-amber-500 flex items-center justify-center font-bold">
+                                <i class="fa-solid fa-location-dot text-lg"></i>
+                            </div>
+                            <div>
+                                <h2 class="text-lg font-bold font-serif text-dark">Default Delivery Location</h2>
+                                <p class="text-xs text-gray-400">Pre-filled during checkout for quick ordering</p>
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <div>
+                                <label for="profCity" class="block text-xs font-bold uppercase tracking-wider text-gray-700 mb-1">City</label>
+                                <input type="text" id="profCity" name="profCity" class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:outline-none focus:border-primary text-sm transition-all">
+                            </div>
+                            <div>
+                                <label for="profArea" class="block text-xs font-bold uppercase tracking-wider text-gray-700 mb-1">Area / Sub-City</label>
+                                <input type="text" id="profArea" name="profArea" class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:outline-none focus:border-primary text-sm transition-all">
+                            </div>
+                            <div class="sm:col-span-2">
+                                <label for="profAddress" class="block text-xs font-bold uppercase tracking-wider text-gray-700 mb-1">Street / Building Address</label>
+                                <input type="text" id="profAddress" name="profAddress" class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:outline-none focus:border-primary text-sm transition-all">
+                            </div>
+                            <div class="sm:col-span-2">
+                                <label for="profInstructions" class="block text-xs font-bold uppercase tracking-wider text-gray-700 mb-1">Delivery Instructions</label>
+                                <textarea id="profInstructions" name="profInstructions" rows="2" class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:outline-none focus:border-primary text-sm transition-all resize-none"></textarea>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Action Save Bar -->
+                    <div class="pt-4 border-t border-gray-100 flex items-center justify-between">
+                        <span id="saveSuccessAlert" class="text-chapa text-xs font-bold hidden flex items-center gap-1">
+                            <i class="fa-solid fa-circle-check"></i> Profile saved successfully!
+                        </span>
+                        <button type="submit" class="ml-auto px-6 py-3 bg-primary hover:bg-primaryDark text-white font-bold rounded-xl shadow-3d-btn transition-all text-sm">
+                            Save Changes
+                        </button>
+                    </div>
+                </div>
+
+            </form>
+        </section>
+
+    </main>
+
+    <!-- Individual Order Detail Modal -->
+    <div id="orderDetailsModal" class="fixed inset-0 bg-dark/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-white rounded-3xl max-w-2xl w-full max-h-[90vh] flex flex-col shadow-2xl overflow-hidden animate-fade-in">
+            <!-- Modal Header -->
+            <div class="p-6 border-b border-gray-100 flex items-center justify-between bg-gray-50/50">
+                <div>
+                    <span class="text-xs text-gray-400 block uppercase font-bold tracking-wider">Order Inspection</span>
+                    <h3 id="modalOrderId" class="text-xl font-serif font-bold text-dark">#TC-000000</h3>
+                </div>
+                <button onclick="closeOrderModal()" class="w-9 h-9 rounded-full bg-white border border-gray-200 text-gray-500 hover:text-dark hover:bg-gray-100 flex items-center justify-center transition-colors">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+
+            <!-- Modal Content Body -->
+            <div id="modalOrderBody" class="p-6 overflow-y-auto modal-scroll space-y-6 flex-grow">
+                <!-- Dynamically injected details -->
+            </div>
+
+            <!-- Modal Footer -->
+            <div class="p-4 border-t border-gray-100 bg-gray-50/50 flex justify-end">
+                <button onclick="closeOrderModal()" class="px-6 py-2.5 bg-gray-900 text-white font-bold rounded-xl text-sm hover:bg-gray-800 transition-colors">
+                    Close Window
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <footer class="py-6 text-center text-xs text-gray-400 mt-auto">
+        &copy; 2026 TimeCafe Pizzeria. All rights reserved.
+    </footer>
+
+    <!-- Scripts -->
+     <script src="js/api.js"></script>
+    <script src="js/cart-store.js"></script>
+    <script src="js/profile-ui.js"></script>
+</body>
+</html>
