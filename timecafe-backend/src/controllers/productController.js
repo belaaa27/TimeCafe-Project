@@ -2,9 +2,31 @@ const { Product } = require("../models");
 const { Op } = require("sequelize");
 const fs = require("fs");
 const path = require("path");
+const cloudinary = require("../config/cloudinary");
 
 /**
- * Helper to safely delete local upload files
+ * Stream buffer directly to Cloudinary
+ */
+const streamUpload = (fileBuffer) => {
+  return new Promise((resolve, reject) => {
+    const stream = cloudinary.uploader.upload_stream(
+      {
+        folder: "timecafe/products",
+      },
+      (error, result) => {
+        if (result) {
+          resolve(result);
+        } else {
+          reject(error);
+        }
+      },
+    );
+    stream.end(fileBuffer);
+  });
+};
+
+/**
+ * Helper to safely delete legacy local upload files
  */
 const deleteLocalFile = (imageUrl) => {
   if (!imageUrl || !imageUrl.startsWith("/uploads/")) return;
@@ -91,18 +113,19 @@ exports.createProduct = async (req, res) => {
     const { name, price, description, category, image_url, is_available } =
       req.body;
 
-    // Validate required fields and clean up file if invalid
+    // Validate required fields
     if (!name || !price) {
-      if (req.file) deleteLocalFile(`/uploads/${req.file.filename}`);
       return res
         .status(400)
         .json({ success: false, message: "Name and price are required." });
     }
 
-    // Relative path preferred over hardcoded localhost
     let finalImageUrl = image_url || null;
+
+    // Upload memory buffer to Cloudinary if an image file was provided
     if (req.file) {
-      finalImageUrl = `/uploads/${req.file.filename}`;
+      const uploadResult = await streamUpload(req.file.buffer);
+      finalImageUrl = uploadResult.secure_url;
     }
 
     const parsedPrice = parseFloat(price);
@@ -119,8 +142,7 @@ exports.createProduct = async (req, res) => {
 
     res.status(201).json({ success: true, data: product });
   } catch (error) {
-    console.error("Error creating product:", error);
-    if (req.file) deleteLocalFile(`/uploads/${req.file.filename}`);
+    console.error("Error creating product:", error.message || error);
     res
       .status(500)
       .json({ success: false, message: "Server error creating food item." });
@@ -135,7 +157,6 @@ exports.updateProduct = async (req, res) => {
     let product = await Product.findByPk(req.params.id);
 
     if (!product) {
-      if (req.file) deleteLocalFile(`/uploads/${req.file.filename}`);
       return res
         .status(404)
         .json({ success: false, message: "Food item not found." });
@@ -148,7 +169,13 @@ exports.updateProduct = async (req, res) => {
     let finalImageUrl = oldImageUrl;
 
     if (req.file) {
-      finalImageUrl = `/uploads/${req.file.filename}`;
+      const uploadResult = await streamUpload(req.file.buffer);
+      finalImageUrl = uploadResult.secure_url;
+
+      // Safely delete legacy local disk file if replaced
+      if (oldImageUrl && oldImageUrl.startsWith("/uploads/")) {
+        deleteLocalFile(oldImageUrl);
+      }
     } else if (image_url) {
       finalImageUrl = image_url;
     }
@@ -168,15 +195,9 @@ exports.updateProduct = async (req, res) => {
 
     product = await product.update(updateData);
 
-    // Delete previous file if a new file replaced it
-    if (req.file && oldImageUrl && oldImageUrl !== finalImageUrl) {
-      deleteLocalFile(oldImageUrl);
-    }
-
     res.status(200).json({ success: true, data: product });
   } catch (error) {
-    console.error("Error updating product:", error);
-    if (req.file) deleteLocalFile(`/uploads/${req.file.filename}`);
+    console.error("Error updating product:", error.message || error);
     res
       .status(500)
       .json({ success: false, message: "Server error updating food item." });
@@ -199,8 +220,8 @@ exports.deleteProduct = async (req, res) => {
     const imageUrl = product.image_url;
     await product.destroy();
 
-    // Clean up local image file on successful deletion
-    if (imageUrl) {
+    // Clean up local disk image only if it was a legacy local upload
+    if (imageUrl && imageUrl.startsWith("/uploads/")) {
       deleteLocalFile(imageUrl);
     }
 
@@ -233,6 +254,7 @@ exports.getCategories = async (req, res) => {
       .json({ success: false, message: "Server error fetching categories." });
   }
 };
+
 // @desc    Rename a category across all products
 // @route   PUT /api/categories/rename
 // @access  Private/Admin

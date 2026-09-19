@@ -1,8 +1,9 @@
 require("dotenv").config();
+
 const app = require("./src/app");
 const { sequelize } = require("./src/models");
 
-const PORT = process.env.PORT;
+const PORT = process.env.PORT || 5000;
 
 const startServer = async () => {
   try {
@@ -10,14 +11,13 @@ const startServer = async () => {
     await sequelize.authenticate();
     console.log("✅ MySQL Database connected successfully.");
 
-    // Sync models to database (creates tables if they don't exist)
-    // Note: Using { alter: true } updates schema without dropping data.
-    await sequelize.sync({ alter: true });
+    // Sync models without altering existing database structure
+    await sequelize.sync();
     console.log("✅ Database models synchronized.");
 
     app.listen(PORT, () => {
       console.log(
-        `🚀 Server running in ${process.env.NODE_ENV} mode on port ${PORT}`,
+        `🚀 Server running in ${process.env.NODE_ENV || "development"} mode on port ${PORT}`,
       );
     });
   } catch (error) {

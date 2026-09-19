@@ -1,6 +1,6 @@
 const express = require("express");
 const cors = require("cors");
-const path = require("path"); // 1. IMPORT PATH
+const path = require("path");
 
 // Import routes
 const adminRoutes = require("./routes/adminRoutes");
@@ -22,10 +22,11 @@ app.use(
     origin: CLIENT_URL,
   }),
 );
+
 app.use(express.json());
 
-// 2. SERVE UPLOADED IMAGES STATICALLY
-// "../uploads" steps out of src/ into your project root's uploads/ folder
+// Serve legacy local uploaded images.
+// New product images are stored in Cloudinary.
 app.use("/uploads", express.static(path.join(__dirname, "../uploads")));
 
 // Mount Routes
@@ -45,6 +46,7 @@ app.get("/", (req, res) => {
 // Chapa redirect route
 app.get("/payment-success", (req, res) => {
   const tx_ref = req.query.tx_ref;
+
   res.redirect(
     `${CLIENT_URL}/timecafe-frontend/order-confirmation.html?tx_ref=${tx_ref}`,
   );
@@ -52,7 +54,10 @@ app.get("/payment-success", (req, res) => {
 
 // Handle undefined routes
 app.use((req, res) => {
-  res.status(404).json({ success: false, message: "Route not found" });
+  res.status(404).json({
+    success: false,
+    message: "Route not found",
+  });
 });
 
 module.exports = app;
