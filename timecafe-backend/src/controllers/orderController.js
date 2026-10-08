@@ -164,7 +164,7 @@ exports.createOrder = async (req, res) => {
           `${BACKEND_URL}/api/payments/webhook`,
         return_url:
           returnUrl ||
-          `${CLIENT_URL}/pages/payment-success.html?tx_ref=${txRef}`,
+          `${CLIENT_URL}/order-confirmation.html?tx_ref=${txRef}`,
         customization: {
           title: "TimeCafe",
           description: `Payment for Order ${order.id}`,
