@@ -27,7 +27,7 @@ Create a `.env` file inside the `timecafe-backend/` directory.
 
 ### Example Configuration
 
-Use the following template and supply your own local development values:
+Create a `.env` file inside `timecafe-backend/` and add your own values:
 
 ```env
 PORT=
@@ -52,6 +52,9 @@ SUPERADMIN_PASSWORD=
 CLOUDINARY_CLOUD_NAME=
 CLOUDINARY_API_KEY=
 CLOUDINARY_API_SECRET=
+```
+
+Replace the empty values with your actual local development configuration. Never use production credentials in a public repository.                    
 ```
 
 ### Security Guidelines
